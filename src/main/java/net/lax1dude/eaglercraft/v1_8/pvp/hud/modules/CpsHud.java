@@ -8,6 +8,10 @@ import net.minecraft.client.Minecraft;
 public final class CpsHud implements HudElement {
 
 	private final Minecraft minecraft;
+	private int cachedLeftCps = -1;
+	private int cachedRightCps = -1;
+	private String cachedText = "";
+	private int cachedWidth;
 
 	public CpsHud(Minecraft minecraft) {
 		this.minecraft = minecraft;
@@ -20,9 +24,8 @@ public final class CpsHud implements HudElement {
 
 	@Override
 	public int getWidth(PvpContext context) {
-		PvpRuntime runtime = context.runtime;
-		String text = "CPS: " + runtime.getLeftCps();
-		return minecraft.fontRendererObj.getStringWidth(text) + 4;
+		refresh(context);
+		return cachedWidth;
 	}
 
 	@Override
@@ -32,9 +35,20 @@ public final class CpsHud implements HudElement {
 
 	@Override
 	public void render(PvpContext context, int x, int y) {
+		refresh(context);
+		minecraft.fontRendererObj.drawStringWithShadow(cachedText, x + 2, y + 2, 0xFFFFFFFF);
+	}
+
+	private void refresh(PvpContext context) {
 		PvpRuntime runtime = context.runtime;
-		String text = "CPS: " + runtime.getLeftCps();
-		minecraft.fontRendererObj.drawStringWithShadow(text, x + 2, y + 2, 0xFFFFFFFF);
+		int leftCps = runtime != null ? runtime.getLeftCps() : 0;
+		int rightCps = runtime != null ? runtime.getRightCps() : 0;
+		if(leftCps != cachedLeftCps || rightCps != cachedRightCps) {
+			cachedLeftCps = leftCps;
+			cachedRightCps = rightCps;
+			cachedText = "CPS: L " + leftCps + " R " + rightCps;
+			cachedWidth = minecraft.fontRendererObj.getStringWidth(cachedText) + 4;
+		}
 	}
 
 }

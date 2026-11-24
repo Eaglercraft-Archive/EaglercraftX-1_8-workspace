@@ -7,6 +7,11 @@ import net.minecraft.client.Minecraft;
 public final class CoordinatesHud implements HudElement {
 
 	private final Minecraft minecraft;
+	private int cachedX = Integer.MIN_VALUE;
+	private int cachedY = Integer.MIN_VALUE;
+	private int cachedZ = Integer.MIN_VALUE;
+	private String cachedText = "";
+	private int cachedWidth;
 
 	public CoordinatesHud(Minecraft minecraft) {
 		this.minecraft = minecraft;
@@ -19,11 +24,8 @@ public final class CoordinatesHud implements HudElement {
 
 	@Override
 	public int getWidth(PvpContext context) {
-		if(minecraft.thePlayer == null) {
-			return 0;
-		}
-		String text = getText();
-		return minecraft.fontRendererObj.getStringWidth(text) + 4;
+		refresh();
+		return cachedWidth;
 	}
 
 	@Override
@@ -34,13 +36,30 @@ public final class CoordinatesHud implements HudElement {
 	@Override
 	public void render(PvpContext context, int x, int y) {
 		if(minecraft.thePlayer != null) {
-			minecraft.fontRendererObj.drawStringWithShadow(getText(), x + 2, y + 2, 0xFFFFFFFF);
+			refresh();
+			minecraft.fontRendererObj.drawStringWithShadow(cachedText, x + 2, y + 2, 0xFFFFFFFF);
 		}
 	}
 
-	private String getText() {
-		return "XYZ: " + (int) minecraft.thePlayer.posX + " " + (int) minecraft.thePlayer.posY + " "
-				+ (int) minecraft.thePlayer.posZ;
+	private void refresh() {
+		if(minecraft.thePlayer == null) {
+			cachedWidth = 0;
+			cachedText = "";
+			cachedX = Integer.MIN_VALUE;
+			cachedY = Integer.MIN_VALUE;
+			cachedZ = Integer.MIN_VALUE;
+			return;
+		}
+		int x = (int) minecraft.thePlayer.posX;
+		int y = (int) minecraft.thePlayer.posY;
+		int z = (int) minecraft.thePlayer.posZ;
+		if(x != cachedX || y != cachedY || z != cachedZ) {
+			cachedX = x;
+			cachedY = y;
+			cachedZ = z;
+			cachedText = "XYZ: " + x + " " + y + " " + z;
+			cachedWidth = minecraft.fontRendererObj.getStringWidth(cachedText) + 4;
+		}
 	}
 
 }

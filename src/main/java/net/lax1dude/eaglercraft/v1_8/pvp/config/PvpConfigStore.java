@@ -47,6 +47,17 @@ public final class PvpConfigStore {
 		try {
 			String json = new String(data, StandardCharsets.UTF_8);
 			config = PvpConfig.fromJson(json);
+			if(config.needsMigration()) {
+				int loadedVersion = config.getLoadedVersion();
+				if(loadedVersion < PvpConfig.CONFIG_VERSION) {
+					logger.info("Migrating PvP client configuration from version {} to version {}.",
+							loadedVersion, PvpConfig.CONFIG_VERSION);
+					saveNow();
+				}else {
+					logger.warn("PvP client configuration is from a newer version ({}); loaded known settings.",
+							loadedVersion);
+				}
+			}
 		}catch(JSONException ex) {
 			logger.warn("Invalid PvP client configuration in storage; using defaults.");
 			config = new PvpConfig();

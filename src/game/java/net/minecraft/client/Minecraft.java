@@ -1362,6 +1362,9 @@ public class Minecraft implements IThreadListener {
 					KeyBinding.setKeyBindState(i - 100, Mouse.getEventButtonState());
 					if (Mouse.getEventButtonState()) {
 						PointerInputAbstraction.enterMouseModeHook();
+						if(this.pvpClient != null) {
+							this.pvpClient.recordMouseClick(i);
+						}
 						if (this.thePlayer.isSpectator() && i == 2) {
 							this.ingameGUI.getSpectatorGui().func_175261_b();
 						} else {

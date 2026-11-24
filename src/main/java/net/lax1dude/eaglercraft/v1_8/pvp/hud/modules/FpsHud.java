@@ -7,6 +7,9 @@ import net.minecraft.client.Minecraft;
 public final class FpsHud implements HudElement {
 
 	private final Minecraft minecraft;
+	private int cachedFps = -1;
+	private String cachedText = "";
+	private int cachedWidth;
 
 	public FpsHud(Minecraft minecraft) {
 		this.minecraft = minecraft;
@@ -19,7 +22,8 @@ public final class FpsHud implements HudElement {
 
 	@Override
 	public int getWidth(PvpContext context) {
-		return minecraft.fontRendererObj.getStringWidth("FPS: " + Minecraft.getDebugFPS()) + 4;
+		refresh(context);
+		return cachedWidth;
 	}
 
 	@Override
@@ -29,7 +33,17 @@ public final class FpsHud implements HudElement {
 
 	@Override
 	public void render(PvpContext context, int x, int y) {
-		minecraft.fontRendererObj.drawStringWithShadow("FPS: " + Minecraft.getDebugFPS(), x + 2, y + 2, 0xFFFFFFFF);
+		refresh(context);
+		minecraft.fontRendererObj.drawStringWithShadow(cachedText, x + 2, y + 2, 0xFFFFFFFF);
+	}
+
+	private void refresh(PvpContext context) {
+		int fps = Minecraft.getDebugFPS();
+		if(fps != cachedFps) {
+			cachedFps = fps;
+			cachedText = "FPS: " + fps;
+			cachedWidth = minecraft.fontRendererObj.getStringWidth(cachedText) + 4;
+		}
 	}
 
 }

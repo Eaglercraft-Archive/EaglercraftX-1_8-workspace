@@ -14,6 +14,8 @@ public final class PvpConfig {
 	public boolean enabled = true;
 	public boolean hudEnabled = true;
 	public final Map<String, HudElementConfig> elements = new LinkedHashMap<>();
+	private int loadedVersion;
+	private boolean needsMigration;
 
 	public PvpConfig() {
 		elements.put("fps", new HudElementConfig(true, HudElementConfig.Anchor.TOP_LEFT, 5, 5, 1.0f));
@@ -30,9 +32,23 @@ public final class PvpConfig {
 		return config;
 	}
 
+	public int getLoadedVersion() {
+		return loadedVersion;
+	}
+
+	public boolean needsMigration() {
+		return needsMigration;
+	}
+
 	public static PvpConfig fromJson(String json) {
 		PvpConfig config = new PvpConfig();
 		JSONObject root = new JSONObject(json);
+		config.loadedVersion = root.optInt("version", 0);
+		config.needsMigration = config.loadedVersion != CONFIG_VERSION;
+		if(config.loadedVersion <= 0) {
+			config.migrateLegacyRoot(root);
+			return config;
+		}
 		config.enabled = root.optBoolean("enabled", true);
 		config.hudEnabled = root.optBoolean("hudEnabled", true);
 		JSONObject elements = root.optJSONObject("elements");
@@ -45,6 +61,20 @@ public final class PvpConfig {
 			}
 		}
 		return config;
+	}
+
+	private void migrateLegacyRoot(JSONObject root) {
+		enabled = root.optBoolean("enabled", true);
+		hudEnabled = root.optBoolean("hudEnabled", true);
+		JSONObject legacyElements = root.optJSONObject("elements");
+		if(legacyElements != null) {
+			for(Map.Entry<String, HudElementConfig> entry : elements.entrySet()) {
+				JSONObject element = legacyElements.optJSONObject(entry.getKey());
+				if(element != null) {
+					entry.setValue(HudElementConfig.fromJson(element, entry.getValue()));
+				}
+			}
+		}
 	}
 
 	public JSONObject toJson() {

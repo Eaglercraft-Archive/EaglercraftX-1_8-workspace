@@ -37,6 +37,10 @@ public final class PvpClient {
 		configStore.tick();
 	}
 
+	public void recordMouseClick(int button) {
+		runtime.recordMouseClick(button);
+	}
+
 	public void renderHud(ScaledResolution resolution, float partialTicks) {
 		if(configStore.getConfig().enabled && configStore.getConfig().hudEnabled
 				&& minecraft.theWorld != null && minecraft.thePlayer != null

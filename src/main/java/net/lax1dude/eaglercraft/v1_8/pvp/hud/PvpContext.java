@@ -6,12 +6,16 @@ import net.lax1dude.eaglercraft.v1_8.pvp.PvpRuntime;
 
 public final class PvpContext {
 
-	public final Minecraft minecraft;
-	public final ScaledResolution resolution;
-	public final float partialTicks;
-	public final PvpRuntime runtime;
+	public Minecraft minecraft;
+	public ScaledResolution resolution;
+	public float partialTicks;
+	public PvpRuntime runtime;
 
 	public PvpContext(Minecraft minecraft, ScaledResolution resolution, float partialTicks, PvpRuntime runtime) {
+		update(minecraft, resolution, partialTicks, runtime);
+	}
+
+	public void update(Minecraft minecraft, ScaledResolution resolution, float partialTicks, PvpRuntime runtime) {
 		this.minecraft = minecraft;
 		this.resolution = resolution;
 		this.partialTicks = partialTicks;

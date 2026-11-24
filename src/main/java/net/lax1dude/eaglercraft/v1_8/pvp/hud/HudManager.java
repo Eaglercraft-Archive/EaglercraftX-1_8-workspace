@@ -17,10 +17,12 @@ public final class HudManager {
 	private final PvpConfig config;
 	private final Minecraft minecraft;
 	private final Map<String, HudElement> elements = new LinkedHashMap<>();
+	private final PvpContext context;
 
 	public HudManager(PvpConfig config, Minecraft minecraft) {
 		this.config = config;
 		this.minecraft = minecraft;
+		this.context = new PvpContext(minecraft, null, 0.0f, null);
 		register(new FpsHud(minecraft));
 		register(new CoordinatesHud(minecraft));
 		register(new CpsHud(minecraft));
@@ -31,7 +33,7 @@ public final class HudManager {
 	}
 
 	public void render(ScaledResolution resolution, float partialTicks, PvpRuntime runtime) {
-		PvpContext context = new PvpContext(minecraft, resolution, partialTicks, runtime);
+		context.update(minecraft, resolution, partialTicks, runtime);
 		for(HudElement element : elements.values()) {
 			HudElementConfig elementConfig = config.getElement(element.getId());
 			if(!elementConfig.enabled) {
@@ -40,8 +42,10 @@ public final class HudManager {
 
 			int width = element.getWidth(context);
 			int height = element.getHeight(context);
-			int x = resolveX(elementConfig, resolution.getScaledWidth(), width);
-			int y = resolveY(elementConfig, resolution.getScaledHeight(), height);
+			int scaledWidth = scaleDimension(width, elementConfig.scale);
+			int scaledHeight = scaleDimension(height, elementConfig.scale);
+			int x = resolveX(elementConfig, resolution.getScaledWidth(), scaledWidth);
+			int y = resolveY(elementConfig, resolution.getScaledHeight(), scaledHeight);
 
 			GlStateManager.pushMatrix();
 			GlStateManager.translate((float) x, (float) y, 0.0f);
@@ -79,6 +83,10 @@ public final class HudManager {
 		default:
 			return config.offsetY;
 		}
+	}
+
+	private int scaleDimension(int dimension, float scale) {
+		return (int) (dimension * scale + 0.5f);
 	}
 
 }

@@ -1,8 +1,6 @@
 package net.lax1dude.eaglercraft.v1_8.pvp;
 
 import net.lax1dude.eaglercraft.v1_8.EagRuntime;
-import net.lax1dude.eaglercraft.v1_8.Mouse;
-
 public final class PvpRuntime {
 
 	private static final int CLICK_HISTORY_SIZE = 128;
@@ -12,23 +10,18 @@ public final class PvpRuntime {
 	private final long[] rightClicks = new long[CLICK_HISTORY_SIZE];
 	private int leftClickIndex;
 	private int rightClickIndex;
-	private boolean leftButtonDown;
-	private boolean rightButtonDown;
 
 	public void tick() {
-		boolean leftDown = Mouse.isButtonDown(0);
-		if(leftDown && !leftButtonDown) {
+	}
+
+	public void recordMouseClick(int button) {
+		if(button == 0) {
 			recordClick(leftClicks, leftClickIndex);
 			leftClickIndex = (leftClickIndex + 1) % CLICK_HISTORY_SIZE;
-		}
-		leftButtonDown = leftDown;
-
-		boolean rightDown = Mouse.isButtonDown(1);
-		if(rightDown && !rightButtonDown) {
+		}else if(button == 1) {
 			recordClick(rightClicks, rightClickIndex);
 			rightClickIndex = (rightClickIndex + 1) % CLICK_HISTORY_SIZE;
 		}
-		rightButtonDown = rightDown;
 	}
 
 	private void recordClick(long[] clicks, int index) {
