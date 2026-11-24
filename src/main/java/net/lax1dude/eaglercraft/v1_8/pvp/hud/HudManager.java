@@ -1,0 +1,84 @@
+package net.lax1dude.eaglercraft.v1_8.pvp.hud;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import net.lax1dude.eaglercraft.v1_8.opengl.GlStateManager;
+import net.lax1dude.eaglercraft.v1_8.pvp.PvpRuntime;
+import net.lax1dude.eaglercraft.v1_8.pvp.config.PvpConfig;
+import net.lax1dude.eaglercraft.v1_8.pvp.hud.modules.CoordinatesHud;
+import net.lax1dude.eaglercraft.v1_8.pvp.hud.modules.CpsHud;
+import net.lax1dude.eaglercraft.v1_8.pvp.hud.modules.FpsHud;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+
+public final class HudManager {
+
+	private final PvpConfig config;
+	private final Minecraft minecraft;
+	private final Map<String, HudElement> elements = new LinkedHashMap<>();
+
+	public HudManager(PvpConfig config, Minecraft minecraft) {
+		this.config = config;
+		this.minecraft = minecraft;
+		register(new FpsHud(minecraft));
+		register(new CoordinatesHud(minecraft));
+		register(new CpsHud(minecraft));
+	}
+
+	private void register(HudElement element) {
+		elements.put(element.getId(), element);
+	}
+
+	public void render(ScaledResolution resolution, float partialTicks, PvpRuntime runtime) {
+		PvpContext context = new PvpContext(minecraft, resolution, partialTicks, runtime);
+		for(HudElement element : elements.values()) {
+			HudElementConfig elementConfig = config.getElement(element.getId());
+			if(!elementConfig.enabled) {
+				continue;
+			}
+
+			int width = element.getWidth(context);
+			int height = element.getHeight(context);
+			int x = resolveX(elementConfig, resolution.getScaledWidth(), width);
+			int y = resolveY(elementConfig, resolution.getScaledHeight(), height);
+
+			GlStateManager.pushMatrix();
+			GlStateManager.translate((float) x, (float) y, 0.0f);
+			GlStateManager.scale(elementConfig.scale, elementConfig.scale, 1.0f);
+			element.render(context, 0, 0);
+			GlStateManager.popMatrix();
+		}
+	}
+
+	private int resolveX(HudElementConfig config, int screenWidth, int width) {
+		switch(config.anchor) {
+		case TOP_CENTER:
+		case CENTER:
+		case BOTTOM_CENTER:
+			return (screenWidth - width) / 2 + config.offsetX;
+		case TOP_RIGHT:
+		case CENTER_RIGHT:
+		case BOTTOM_RIGHT:
+			return screenWidth - width - config.offsetX;
+		default:
+			return config.offsetX;
+		}
+	}
+
+	private int resolveY(HudElementConfig config, int screenHeight, int height) {
+		switch(config.anchor) {
+		case CENTER_LEFT:
+		case CENTER:
+		case CENTER_RIGHT:
+			return (screenHeight - height) / 2 + config.offsetY;
+		case BOTTOM_LEFT:
+		case BOTTOM_CENTER:
+		case BOTTOM_RIGHT:
+			return screenHeight - height - config.offsetY;
+		default:
+			return config.offsetY;
+		}
+	}
+
+}

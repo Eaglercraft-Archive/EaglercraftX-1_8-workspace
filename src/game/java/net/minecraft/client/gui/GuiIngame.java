@@ -326,6 +326,9 @@ public class GuiIngame extends Gui {
 
 		GlStateManager.disableLighting();
 		GlStateManager.enableAlpha();
+		if(this.mc.getPvpClient() != null) {
+			this.mc.getPvpClient().renderHud(scaledresolution, partialTicks);
+		}
 	}
 
 	public void renderGameOverlayCrosshairs(int scaledResWidth, int scaledResHeight) {
