@@ -64,6 +64,7 @@ import net.lax1dude.eaglercraft.v1_8.profanity_filter.GuiScreenContentWarning;
 import net.lax1dude.eaglercraft.v1_8.profile.EaglerProfile;
 import net.lax1dude.eaglercraft.v1_8.profile.GuiScreenEditProfile;
 import net.lax1dude.eaglercraft.v1_8.profile.SkinPreviewRenderer;
+import net.lax1dude.eaglercraft.v1_8.pvp.PvpClient;
 import net.lax1dude.eaglercraft.v1_8.socket.AddressResolver;
 import net.lax1dude.eaglercraft.v1_8.socket.EaglercraftNetworkManager;
 import net.lax1dude.eaglercraft.v1_8.socket.RateLimitTracker;
@@ -260,6 +261,7 @@ public class Minecraft implements IThreadListener {
 	private int tempDisplayHeight;
 	public GuiAchievement guiAchievement;
 	public GuiIngame ingameGUI;
+	public PvpClient pvpClient;
 	public boolean skipRenderWorld;
 	public MovingObjectPosition objectMouseOver;
 	public GameSettings gameSettings;
@@ -502,6 +504,7 @@ public class Minecraft implements IThreadListener {
 		SkinPreviewRenderer.initialize();
 		this.checkGLError("Post startup");
 		this.ingameGUI = new GuiIngame(this);
+		this.pvpClient = PvpClient.initialize(this);
 
 		this.mouseGrabSupported = Mouse.isMouseGrabSupported();
 		PointerInputAbstraction.init(this);
@@ -805,6 +808,9 @@ public class Minecraft implements IThreadListener {
 	public void shutdownMinecraftApplet() {
 		try {
 			logger.info("Stopping!");
+			if(this.pvpClient != null) {
+				this.pvpClient.shutdown();
+			}
 
 			try {
 				this.loadWorld((WorldClient) null);
@@ -1172,6 +1178,10 @@ public class Minecraft implements IThreadListener {
 			--this.rightClickDelayTimer;
 		}
 
+		if(this.pvpClient != null) {
+			this.pvpClient.tick();
+		}
+
 		RateLimitTracker.tick();
 
 		boolean isHostingLAN = LANServerController.isHostingLAN();
@@ -1352,6 +1362,9 @@ public class Minecraft implements IThreadListener {
 					KeyBinding.setKeyBindState(i - 100, Mouse.getEventButtonState());
 					if (Mouse.getEventButtonState()) {
 						PointerInputAbstraction.enterMouseModeHook();
+						if(this.pvpClient != null) {
+							this.pvpClient.recordMouseClick(i);
+						}
 						if (this.thePlayer.isSpectator() && i == 2) {
 							this.ingameGUI.getSpectatorGui().func_175261_b();
 						} else {
@@ -2410,6 +2423,10 @@ public class Minecraft implements IThreadListener {
 
 	public static int getDebugFPS() {
 		return debugFPS;
+	}
+
+	public PvpClient getPvpClient() {
+		return pvpClient;
 	}
 
 	public FrameTimer func_181539_aj() {
